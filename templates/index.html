@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Healthcare RL Optimizer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            text-align: center;
+            padding: 50px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        form {
+            margin-bottom: 40px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        img {
+            margin-top: 20px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 60%;
+            max-width: 600px;
+        }
+
+        h2 {
+            color: #444;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Healthcare RL Treatment Optimizer</h1>
+    
+    <form method="POST">
+        <button type="submit">🧠 Run Agent</button>
+    </form>
+
+    {% if result %}
+        <h2>Glucose Levels Over Time</h2>
+        <img src="{{ url_for('static', filename='plot.png') }}" alt="Glucose Plot">
+    {% endif %}
+</body>
+</html>
