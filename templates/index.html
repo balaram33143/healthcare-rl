@@ -1,64 +1,161 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Healthcare RL Optimizer</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            text-align: center;
-            padding: 50px;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-        }
-
-        form {
-            margin-bottom: 40px;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 12px 25px;
-            font-size: 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        img {
-            margin-top: 20px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            width: 60%;
-            max-width: 600px;
-        }
-
-        h2 {
-            color: #444;
-            margin-top: 40px;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Treatment Optimizer – RL Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-    <h1>Healthcare RL Treatment Optimizer</h1>
-    
-    <form method="POST">
-        <button type="submit">🧠 Run Agent</button>
-    </form>
 
-    {% if result %}
-        <h2>Glucose Levels Over Time</h2>
-        <img src="{{ url_for('static', filename='plot.png') }}" alt="Glucose Plot">
-    {% endif %}
+<body class="bg-gray-100 text-gray-900">
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-6 shadow-lg">
+        <h1 class="text-3xl font-bold text-center">Healthcare Treatment Optimizer</h1>
+        <p class="text-center text-sm mt-2">Reinforcement Learning Simulation Demo</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto p-6 space-y-6">
+
+        <!-- Input Card -->
+        <section class="bg-white rounded-2xl shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Simulation Controls</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium">Initial Glucose</label>
+                    <input id="glucose" type="number" value="120" class="mt-1 p-2 w-full border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Target Glucose</label>
+                    <input id="goal" type="number" value="100" class="mt-1 p-2 w-full border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Timesteps</label>
+                    <input id="steps" type="number" value="20" class="mt-1 p-2 w-full border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Action Mode</label>
+                    <select id="mode" class="mt-1 p-2 w-full border rounded">
+            <option value="agent">RL Agent</option>
+            <option value="random">Random</option>
+            <option value="manual">Manual</option>
+          </select>
+                </div>
+            </div>
+            <button onclick="runSimulation()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">
+        Run Simulation
+      </button>
+        </section>
+
+        <!-- Chart -->
+        <section class="bg-white rounded-2xl shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Glucose Levels Over Time</h2>
+            <canvas id="glucoseChart"></canvas>
+        </section>
+
+        <!-- Log -->
+        <section class="bg-white rounded-2xl shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Simulation Log</h2>
+            <div id="log" class="h-60 overflow-y-auto text-sm bg-gray-50 border p-3 rounded"></div>
+            <div class="flex space-x-2 mt-3">
+                <button onclick="copyLog()" class="bg-gray-600 text-white px-3 py-1 rounded">Copy Log</button>
+                <button onclick="downloadCSV()" class="bg-green-600 text-white px-3 py-1 rounded">Download CSV</button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        let chart;
+
+        function runSimulation() {
+            const glucose = parseFloat(document.getElementById('glucose').value);
+            const goal = parseFloat(document.getElementById('goal').value);
+            const steps = parseInt(document.getElementById('steps').value);
+            const mode = document.getElementById('mode').value;
+
+            let values = [glucose];
+            let logText = "Step,Glucose,Action\n";
+            let current = glucose;
+
+            for (let i = 1; i <= steps; i++) {
+                let action = 0;
+                if (mode === "agent") {
+                    action = current > goal ? -5 : (current < goal ? 5 : 0);
+                } else if (mode === "random") {
+                    action = Math.floor(Math.random() * 11) - 5; // -5 to +5
+                } else {
+                    action = prompt(`Manual action for step ${i} (e.g., -5, 0, +5):`, "0");
+                    action = parseFloat(action) || 0;
+                }
+                current += action + (Math.random() * 4 - 2); // add noise
+                values.push(current);
+                logText += `${i},${current.toFixed(2)},${action}\n`;
+            }
+
+            // Chart update
+            const ctx = document.getElementById('glucoseChart').getContext('2d');
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({
+                        length: steps + 1
+                    }, (_, i) => i),
+                    datasets: [{
+                        label: 'Glucose Level',
+                        data: values,
+                        borderColor: 'rgb(37, 99, 235)',
+                        fill: false,
+                        tension: 0.2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Timestep'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Glucose Level'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Log update
+            document.getElementById("log").textContent = logText;
+        }
+
+        function copyLog() {
+            const logText = document.getElementById("log").textContent;
+            navigator.clipboard.writeText(logText);
+            alert("Log copied to clipboard!");
+        }
+
+        function downloadCSV() {
+            const logText = document.getElementById("log").textContent;
+            const blob = new Blob([logText], {
+                type: "text/csv"
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "simulation_log.csv";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+
 </body>
+
 </html>
